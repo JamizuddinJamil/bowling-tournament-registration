@@ -5,11 +5,11 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 // ── Config ────────────────────────────────────────────────────
-const SUPABASE_URL      = "https://mjsbounrbvuarovnnwhw.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qc2JvdW5yYnZ1YXJvdm5ud2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MTk1MDEsImV4cCI6MjA5NDQ5NTUwMX0.11ZfHA-jevsfuoLcK1UKcMLfXcmU2e4OuY319M2toUU";
-const TOTAL_LANES       = 32;
-const MAX_PER_LANE      = 4;
-const STORAGE_BUCKET    = "payment-receipts";
+const SUPABASE_URL      = import.meta.env.SUPABASE_URL || "https://mjsbounrbvuarovnnwhw.supabase.co";
+const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qc2JvdW5yYnZ1YXJvdm5ud2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MTk1MDEsImV4cCI6MjA5NDQ5NTUwMX0.11ZfHA-jevsfuoLcK1UKcMLfXcmU2e4OuY319M2toUU";
+const TOTAL_LANES       = import.meta.env.TOTAL_LANES || 32;
+const MAX_PER_LANE      = import.meta.env.MAX_PER_LANE || 4;
+const STORAGE_BUCKET    = import.meta.env.STORAGE_BUCKET || "payment-receipts";
 
 // ── Init client ───────────────────────────────────────────────
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
