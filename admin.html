@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — Sukan Bowling AKPS BSI 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ADMIN NAV -->
+<nav class="admin-nav">
+  <div class="admin-nav-brand">🎳 ADMIN PANEL</div>
+  <div class="admin-nav-right">
+    <span style="font-size:12px;color:var(--muted);display:none;" id="navUser">admin</span>
+    <button class="btn btn-sm btn-reject" onclick="handleLogout()">Log Keluar</button>
+  </div>
+</nav>
+
+<div class="wrap-wide" style="padding-top:24px;">
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card c-gold">
+      <div class="stat-val" id="sTot">—</div>
+      <div class="stat-lbl">Jumlah</div>
+    </div>
+    <div class="stat-card c-yellow">
+      <div class="stat-val" id="sPend">—</div>
+      <div class="stat-lbl">Pending</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-val" id="sApprv">—</div>
+      <div class="stat-lbl">Approved</div>
+    </div>
+    <div class="stat-card c-red">
+      <div class="stat-val" id="sRej">—</div>
+      <div class="stat-lbl">Rejected</div>
+    </div>
+    <div class="stat-card c-blue">
+      <div class="stat-val" id="sSlots">—</div>
+      <div class="stat-lbl">Slot Terisi</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="sFree">—</div>
+      <div class="stat-lbl">Slot Baki</div>
+    </div>
+  </div>
+
+  <!-- REGISTRATIONS TABLE -->
+  <div class="section-title">📋 Senarai Pendaftaran</div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <input type="search" id="searchInput" placeholder="Cari nama, rujukan, telefon..." oninput="applyFilters()"/>
+    <div class="select-wrap" style="flex:0 0 160px;">
+      <select id="statusFilter" onchange="applyFilters()">
+        <option value="ALL">Semua Status</option>
+        <option value="PENDING">Pending</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+      </select>
+      <span class="select-arrow">▾</span>
+    </div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap">
+      <table id="regTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Rujukan</th>
+            <th>Nama</th>
+            <th>Telefon</th>
+            <th>Lane</th>
+            <th>Status</th>
+            <th>Resit</th>
+            <th>Tarikh</th>
+            <th>Tindakan</th>
+          </tr>
+        </thead>
+        <tbody id="regBody">
+          <tr><td colspan="9" class="empty-state"><div class="empty-icon">⏳</div>Memuatkan...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LANE MANAGEMENT -->
+  <div class="section-title" style="margin-top:40px;">🏟️ Pengurusan Lane</div>
+  <div class="lane-grid" id="laneGrid">
+    <div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px;">Memuatkan...</div>
+  </div>
+
+</div><!-- /wrap-wide -->
+
+<!-- RECEIPT MODAL -->
+<div class="modal-overlay" id="receiptModal" style="display:none;" onclick="closeModal('receiptModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('receiptModal')">✕</button>
+    <div class="modal-title">🧾 Resit Pembayaran</div>
+    <img id="modalReceiptImg" src="" alt="Resit"/>
+    <div style="margin-top:12px;text-align:center;">
+      <a id="modalReceiptLink" href="" target="_blank" style="font-size:13px;color:var(--gold);">Buka dalam tab baru ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal" style="display:none;" onclick="closeModal('editModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    <div class="modal-title">✏️ Edit Pendaftaran</div>
+    <input type="hidden" id="editId"/>
+    <div class="field">
+      <label>Nama Penuh</label>
+      <input type="text" id="editName"/>
+    </div>
+    <div class="field">
+      <label>No. Telefon</label>
+      <input type="tel" id="editPhone"/>
+    </div>
+    <div class="field">
+      <label>Lane</label>
+      <div class="select-wrap">
+        <select id="editLane"></select>
+        <span class="select-arrow">▾</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Catatan (Remarks)</label>
+      <input type="text" id="editRemarks" placeholder="Catatan admin..."/>
+    </div>
+    <button class="btn btn-primary" onclick="saveEdit()">SIMPAN PERUBAHAN</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import {
+    getAllRegistrations, getLaneOccupancy,
+    approveRegistration, rejectRegistration,
+    deleteRegistration, updateRegistration,
+    formatDate, statusBadge
+  } from "./supabase.js";
+
+  // ── Auth guard ────────────────────────────────────────────
+  if (sessionStorage.getItem("adminAuth") !== "true") {
+    window.location.href = "admin-login.html";
+  }
+
+  let allData = [];
+
+  // ── Init ──────────────────────────────────────────────────
+  async function init() {
+    await Promise.all([loadRegistrations(), loadLanes()]);
+  }
+
+  // ── Load registrations ────────────────────────────────────
+  async function loadRegistrations() {
+    try {
+      allData = await getAllRegistrations();
+      updateStats(allData);
+      renderTable(allData);
+    } catch(e) {
+      showToast("Gagal load data: " + e.message, "error");
+    }
+  }
+
+  // ── Stats ─────────────────────────────────────────────────
+  function updateStats(data) {
+    const tot   = data.length;
+    const pend  = data.filter(r => r.status === "PENDING").length;
+    const apprv = data.filter(r => r.status === "APPROVED").length;
+    const rej   = data.filter(r => r.status === "REJECTED").length;
+    const slots = apprv + pend;
+
+    document.getElementById("sTot").textContent   = tot;
+    document.getElementById("sPend").textContent  = pend;
+    document.getElementById("sApprv").textContent = apprv;
+    document.getElementById("sRej").textContent   = rej;
+    document.getElementById("sSlots").textContent = slots;
+    document.getElementById("sFree").textContent  = Math.max(0, 128 - slots);
+  }
+
+  // ── Render table ──────────────────────────────────────────
+  function renderTable(data) {
+    const tbody = document.getElementById("regBody");
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div>Tiada rekod ditemui</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((r, i) => `
+      <tr>
+        <td class="td-mono">${i + 1}</td>
+        <td class="td-mono">${r.reference_number || "—"}</td>
+        <td class="td-name">${r.full_name}</td>
+        <td>${r.phone}</td>
+        <td>${r.lane_number}</td>
+        <td>${statusBadge(r.status)}${r.official_registration_id ? `<br/><small style="font-size:10px;color:var(--gold);font-family:monospace;">${r.official_registration_id}</small>` : ""}</td>
+        <td>
+          ${r.payment_receipt_url
+            ? `<img src="${r.payment_receipt_url}" class="receipt-thumb" onclick="viewReceipt('${r.payment_receipt_url}')" title="Klik untuk besar"/>`
+            : '<span style="color:var(--muted);font-size:12px;">—</span>'}
+        </td>
+        <td style="font-size:12px;color:var(--muted);white-space:nowrap;">${formatDate(r.created_at)}</td>
+        <td>
+          <div class="btn-group">
+            ${r.status === "PENDING" ? `
+              <button class="btn btn-sm btn-approve" onclick="approve('${r.id}')">✓ Lulus</button>
+              <button class="btn btn-sm btn-reject"  onclick="reject('${r.id}')">✕ Tolak</button>` : ""}
+            <button class="btn btn-sm btn-edit"   onclick="openEdit('${r.id}')">✏️</button>
+            <button class="btn btn-sm btn-delete" onclick="deleteSingle('${r.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join("");
+  }
+
+  // ── Filter ────────────────────────────────────────────────
+  window.applyFilters = function() {
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const status = document.getElementById("statusFilter").value;
+    const filtered = allData.filter(r => {
+      const matchStatus = status === "ALL" || r.status === status;
+      const matchSearch = !search ||
+        r.full_name?.toLowerCase().includes(search) ||
+        r.reference_number?.toLowerCase().includes(search) ||
+        r.phone?.includes(search);
+      return matchStatus && matchSearch;
+    });
+    renderTable(filtered);
+  };
+
+  // ── Approve ───────────────────────────────────────────────
+  window.approve = async function(id) {
+    if (!confirm("Luluskan pendaftaran ini?")) return;
+    try {
+      await approveRegistration(id);
+      showToast("✅ Pendaftaran diluluskan!", "success");
+      await loadRegistrations();
+    } catch(e) { showToast("Ralat: " + e.message, "error"); }
+  };
+
+  // ── Reject ────────────────────────────────────────────────
+  window.reject = async function(id) {
+    if (!confirm("Tolak pendaftaran ini?")) return;
+    try {
+      await rejectRegistration(id);
+      showToast("❌ Pendaftaran ditolak.", "info");
+      await loadRegistrations();
+    } catch(e) { showToast("Ralat: " + e.message, "error"); }
+  };
+
+  // ── Delete ────────────────────────────────────────────────
+  window.deleteSingle = async function(id) {
+    if (!confirm("Padam pendaftaran ini? Tindakan ini tidak boleh dibatalkan.")) return;
+    try {
+      await deleteRegistration(id);
+      showToast("🗑 Rekod dipadam.", "info");
+      await loadRegistrations();
+    } catch(e) { showToast("Ralat: " + e.message, "error"); }
+  };
+
+  // ── Edit ──────────────────────────────────────────────────
+  window.openEdit = function(id) {
+    const reg = allData.find(r => r.id === id);
+    if (!reg) return;
+    document.getElementById("editId").value      = id;
+    document.getElementById("editName").value    = reg.full_name;
+    document.getElementById("editPhone").value   = reg.phone;
+    document.getElementById("editRemarks").value = reg.remarks || "";
+
+    // Populate lane dropdown
+    const laneSel = document.getElementById("editLane");
+    laneSel.innerHTML = "";
+    for (let i = 1; i <= 32; i++) {
+      const opt = document.createElement("option");
+      opt.value = `Lane ${i}`;
+      opt.textContent = `Lane ${i}`;
+      if (`Lane ${i}` === reg.lane_number) opt.selected = true;
+      laneSel.appendChild(opt);
+    }
+    document.getElementById("editModal").style.display = "flex";
+  };
+
+  window.saveEdit = async function() {
+    const id      = document.getElementById("editId").value;
+    const fields  = {
+      full_name: document.getElementById("editName").value.trim(),
+      phone:     document.getElementById("editPhone").value.trim(),
+      lane_number: document.getElementById("editLane").value,
+      remarks:   document.getElementById("editRemarks").value.trim(),
+    };
+    try {
+      await updateRegistration(id, fields);
+      showToast("✓ Rekod dikemaskini", "success");
+      closeModal("editModal");
+      await loadRegistrations();
+    } catch(e) { showToast("Ralat: " + e.message, "error"); }
+  };
+
+  // ── Receipt modal ─────────────────────────────────────────
+  window.viewReceipt = function(url) {
+    document.getElementById("modalReceiptImg").src  = url;
+    document.getElementById("modalReceiptLink").href = url;
+    document.getElementById("receiptModal").style.display = "flex";
+  };
+
+  window.closeModal = function(id) {
+    document.getElementById(id).style.display = "none";
+  };
+
+  // ── Load lanes ────────────────────────────────────────────
+  async function loadLanes() {
+    try {
+      const lanes = await getLaneOccupancy();
+      document.getElementById("laneGrid").innerHTML = lanes.map(l => {
+        const cls = l.full ? "full" : l.remaining === 1 ? "nearly" : "available";
+        return `<div class="lane-card ${cls}">
+          <div class="lc-num">${l.name.replace("Lane ","")}</div>
+          <div class="lc-occ">${l.taken}/4</div>
+          <div class="lc-dot"></div>
+        </div>`;
+      }).join("");
+    } catch(e) { console.error(e); }
+  }
+
+  // ── Export CSV ────────────────────────────────────────────
+  window.exportCSV = function() {
+    const headers = ["ID","Rujukan","ID Rasmi","Nama","No IC","Telefon","Emel","Pasukan","Lane","Status","Tarikh"];
+    const rows = allData.map(r => [
+      r.id, r.reference_number, r.official_registration_id || "",
+      r.full_name, r.ic_number, r.phone, r.email, r.team_name || "",
+      r.lane_number, r.status, formatDate(r.created_at)
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "bowling_registrations.csv"; a.click();
+    URL.revokeObjectURL(url);
+    showToast("✓ CSV dieksport", "success");
+  };
+
+  // ── Logout ────────────────────────────────────────────────
+  window.handleLogout = function() {
+    sessionStorage.removeItem("adminAuth");
+    window.location.href = "admin-login.html";
+  };
+
+  // ── Toast ─────────────────────────────────────────────────
+  window.showToast = function(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast " + type + " show";
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove("show"), 3500);
+  };
+
+  init();
+</script>
+</body>
+</html>

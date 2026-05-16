@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Sukan Bowling AKPS BSI 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="wrap-md">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="org-tag">Unit Kewangan Dan Pembangunan · JBS · Unit Pematuhan</div>
+    <div class="pin">🎳</div>
+    <h1>SUKAN BOWLING<br/><span>AKPS BSI 2026</span></h1>
+    <p class="sub">PENDAFTARAN PESERTA RASMI</p>
+  </header>
+
+  <!-- PILLS -->
+  <div class="pills">
+    <div class="pill">🎮 2 Games</div>
+    <div class="pill">👟 Kasut Disediakan</div>
+    <div class="pill">💰 RM30 / Orang</div>
+    <div class="pill">🏟️ 32 Lane</div>
+  </div>
+
+  <!-- LIVE STATS -->
+  <div class="stats-grid anim-1" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+    <div class="stat-card c-gold">
+      <div class="stat-val" id="statAvail">—</div>
+      <div class="stat-lbl">Lane Tersedia</div>
+    </div>
+    <div class="stat-card c-red">
+      <div class="stat-val" id="statFull">—</div>
+      <div class="stat-lbl">Lane Penuh</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-val" id="statSlots">—</div>
+      <div class="stat-lbl">Slot Baki</div>
+    </div>
+  </div>
+
+  <!-- INFO CARD -->
+  <div class="card anim-2">
+    <div class="card-title">📋 Maklumat Pertandingan</div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:14px;">
+        <span style="color:var(--muted)">Tarikh</span><span>— TBA —</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:14px;">
+        <span style="color:var(--muted)">Masa</span><span>— TBA —</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:14px;">
+        <span style="color:var(--muted)">Lokasi</span><span>— TBA —</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:14px;">
+        <span style="color:var(--muted)">Bayaran</span>
+        <span style="color:var(--gold);font-weight:500;">RM30 / peserta</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:14px;">
+        <span style="color:var(--muted)">Termasuk</span><span>2 Games + Kasut Bowling</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="card anim-2">
+    <div class="card-title">📌 Cara Daftar</div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:var(--gold-bg);border:1px solid var(--border);border-radius:50%;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);color:var(--gold);font-size:16px;">1</div>
+        <div><div style="font-weight:500;color:var(--white);margin-bottom:3px;">Buat Bayaran</div><div style="font-size:13px;color:var(--muted);">Bayar RM30 melalui DuitNow QR yang disediakan.</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:var(--gold-bg);border:1px solid var(--border);border-radius:50%;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);color:var(--gold);font-size:16px;">2</div>
+        <div><div style="font-weight:500;color:var(--white);margin-bottom:3px;">Isi Borang</div><div style="font-size:13px;color:var(--muted);">Isi maklumat, pilih lane, dan upload resit bayaran.</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:var(--gold-bg);border:1px solid var(--border);border-radius:50%;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);color:var(--gold);font-size:16px;">3</div>
+        <div><div style="font-weight:500;color:var(--white);margin-bottom:3px;">Tunggu Pengesahan</div><div style="font-size:13px;color:var(--muted);">Semak status pendaftaran dengan nombor rujukan anda.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE PREVIEW -->
+  <div class="card anim-3">
+    <div class="card-title">🏟️ Status Lane</div>
+    <div class="lane-grid" id="laneGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px;">Memuatkan...</div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:14px;font-size:11px;color:var(--muted);justify-content:center;flex-wrap:wrap;">
+      <span>🟢 Tersedia</span><span>🟡 Hampir penuh</span><span>🔴 Penuh</span>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="hero-btns anim-3">
+    <a href="registration.html" class="btn btn-primary">🎳 Daftar Sekarang</a>
+    <a href="status.html"       class="btn btn-outline">🔍 Semak Status</a>
+  </div>
+
+  <footer class="footer">AKPS BSI 2026 &nbsp;·&nbsp; Sistem Pendaftaran Sukan Bowling</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { getLaneOccupancy } from "./supabase.js";
+
+  async function init() {
+    try {
+      const lanes = await getLaneOccupancy();
+      const fullLanes  = lanes.filter(l => l.full).length;
+      const totalSlots = lanes.reduce((a, l) => a + l.remaining, 0);
+      document.getElementById("statAvail").textContent = 32 - fullLanes;
+      document.getElementById("statFull").textContent  = fullLanes;
+      document.getElementById("statSlots").textContent = totalSlots;
+
+      document.getElementById("laneGrid").innerHTML = lanes.map(l => {
+        const cls = l.full ? "full" : l.remaining === 1 ? "nearly" : "available";
+        return `<div class="lane-card ${cls}">
+          <div class="lc-num">${l.name.replace("Lane ","")}</div>
+          <div class="lc-occ">${l.taken}/4</div>
+          <div class="lc-dot"></div>
+        </div>`;
+      }).join("");
+    } catch(e) {
+      console.error("Lane load error:", e);
+    }
+  }
+  init();
+</script>
+</body>
+</html>

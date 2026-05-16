@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Semak Status — Sukan Bowling AKPS BSI 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="page-header">
+    <a href="index.html" style="font-size:12px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:12px;">← Kembali</a>
+    <h1>SEMAK <span>STATUS</span></h1>
+    <p>Masukkan nombor rujukan pendaftaran anda</p>
+  </div>
+
+  <!-- SEARCH CARD -->
+  <div class="card anim-1">
+    <div class="card-title">🔍 Carian</div>
+    <div class="field">
+      <label for="refInput">Nombor Rujukan</label>
+      <input type="text" id="refInput" placeholder="Contoh: REF-ABC123" style="text-transform:uppercase;" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary" id="searchBtn" onclick="checkStatus()">SEMAK STATUS</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultArea"></div>
+
+  <footer class="footer">AKPS BSI 2026 &nbsp;·&nbsp; Sistem Pendaftaran Sukan Bowling</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { getRegistration, formatDate, statusBadge } from "./supabase.js";
+
+  // Allow Enter key
+  document.getElementById("refInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") checkStatus();
+  });
+
+  window.checkStatus = async function() {
+    const query = document.getElementById("refInput").value.trim().toUpperCase();
+    const btn   = document.getElementById("searchBtn");
+    const area  = document.getElementById("resultArea");
+
+    if (!query) { showToast("Sila masukkan nombor rujukan", "error"); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>MENCARI...';
+    area.innerHTML = "";
+
+    try {
+      const reg = await getRegistration(query);
+
+      if (!reg) {
+        area.innerHTML = `
+          <div class="card" style="text-align:center;padding:40px 20px;">
+            <div style="font-size:36px;margin-bottom:12px;">🔎</div>
+            <div style="font-family:var(--font-display);font-size:20px;color:var(--muted);letter-spacing:2px;">Tiada Rekod</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:8px;">Nombor rujukan tidak dijumpai. Sila semak semula.</div>
+          </div>`;
+        return;
+      }
+
+      const statusMap = {
+        PENDING:  { icon: "⏳", msg: "Pembayaran anda sedang disemak oleh admin. Sila tunggu pengesahan." },
+        APPROVED: { icon: "✅", msg: "Pendaftaran anda telah disahkan! Sila hadir pada hari pertandingan." },
+        REJECTED: { icon: "❌", msg: "Pendaftaran anda telah ditolak. Sila hubungi penganjur untuk maklumat lanjut." },
+      };
+      const s = statusMap[reg.status] || { icon: "❓", msg: "" };
+
+      area.innerHTML = `
+        <div class="status-result anim-1">
+          <div style="font-size:48px;margin-bottom:12px;">${s.icon}</div>
+          <div class="sr-name">${reg.full_name}</div>
+          <div class="sr-ref">${reg.reference_number}</div>
+          ${statusBadge(reg.status)}
+          <div class="divider" style="margin:16px 0;"></div>
+          <div style="text-align:left;font-size:13px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--muted)">Lane</span>
+              <span style="color:var(--white);font-weight:500;">${reg.lane_number}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--muted)">Telefon</span>
+              <span>${reg.phone}</span>
+            </div>
+            ${reg.team_name ? `<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted)">Pasukan</span><span>${reg.team_name}</span></div>` : ""}
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--muted)">Tarikh Daftar</span>
+              <span>${formatDate(reg.created_at)}</span>
+            </div>
+          </div>
+          <div class="divider" style="margin:16px 0;"></div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;">${s.msg}</p>
+          ${reg.status === "APPROVED" && reg.official_registration_id ? `
+            <div style="margin-top:16px;">
+              <div style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">ID Pendaftaran Rasmi</div>
+              <div class="sr-offid">${reg.official_registration_id}</div>
+            </div>` : ""}
+        </div>`;
+
+    } catch(e) {
+      showToast("Ralat: " + e.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "SEMAK STATUS";
+    }
+  };
+
+  window.showToast = function(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast " + type + " show";
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove("show"), 3500);
+  };
+</script>
+</body>
+</html>

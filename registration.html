@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Pendaftaran — Sukan Bowling AKPS BSI 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="page-header">
+    <a href="index.html" style="font-size:12px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:12px;">← Kembali</a>
+    <h1>DAFTAR <span>PESERTA</span></h1>
+    <p>Sukan Bowling AKPS BSI 2026</p>
+  </div>
+
+  <!-- MAIN FORM -->
+  <div id="mainForm">
+
+    <!-- QR PAYMENT -->
+    <div class="card anim-1">
+      <div class="card-title">💳 Bayaran</div>
+      <div class="qr-box">
+        <div class="qr-placeholder">
+          <!-- Ganti dengan: <img src="qr.png" alt="DuitNow QR"/> -->
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="5" y="5" width="3" height="3"/>
+            <rect x="16" y="5" width="3" height="3"/>
+            <rect x="5" y="16" width="3" height="3"/>
+            <path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 17h1v1h-1z"/>
+          </svg>
+          <span>QR DuitNow</span>
+          <small>(akan diisi kemudian)</small>
+        </div>
+        <p class="qr-label">Imbas &amp; bayar sebelum hantar borang</p>
+        <div class="amount-badge">RM 30.00</div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="card anim-2">
+      <div class="card-title">📋 Maklumat Peserta</div>
+
+      <div class="field">
+        <label for="fullName">Nama Penuh *</label>
+        <input type="text" id="fullName" placeholder="Contoh: Ahmad bin Abdullah" autocomplete="name"/>
+      </div>
+
+      <div class="field">
+        <label for="icNumber">No. IC / Kad Pengenalan *</label>
+        <input type="text" id="icNumber" placeholder="Contoh: 900101-14-5678" inputmode="numeric"/>
+      </div>
+
+      <div class="field">
+        <label for="phone">No. Telefon *</label>
+        <input type="tel" id="phone" placeholder="01X-XXXXXXX" autocomplete="tel" inputmode="tel"/>
+      </div>
+
+      <div class="field">
+        <label for="email">Emel *</label>
+        <input type="email" id="email" placeholder="nama@example.com" autocomplete="email" inputmode="email"/>
+      </div>
+
+      <!-- <div class="field">
+        <label for="teamName">Nama Pasukan <span style="color:var(--muted);font-size:10px;">(Pilihan)</span></label>
+        <input type="text" id="teamName" placeholder="Nama pasukan jika ada"/>
+      </div> -->
+
+      <div class="field">
+        <label for="laneSelect">Pilih Lane *</label>
+        <div class="select-wrap">
+          <select id="laneSelect" disabled>
+            <option value="">— Memuatkan lane... —</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="lane-hint" id="laneHint"></div>
+      </div>
+
+      <div class="field">
+        <label>Resit Pembayaran *</label>
+        <div class="file-zone" id="fileZone">
+          <input type="file" id="receiptFile" accept="image/*" capture="environment"/>
+          <div class="file-zone-inner" id="fileInner">
+            <div class="file-icon">📎</div>
+            <div class="file-text">
+              <strong>Klik untuk pilih / ambil gambar</strong>
+              <span>Gambar resit bayaran DuitNow</span>
+              <small>JPG, PNG — Max 5MB</small>
+            </div>
+          </div>
+          <div class="file-preview" id="filePreview">
+            <img id="previewImg" src="" alt="Preview resit"/>
+            <div class="file-preview-name" id="fileName"></div>
+            <button type="button" class="file-remove" onclick="removeFile()">✕ Buang</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">
+        HANTAR PENDAFTARAN
+      </button>
+      <p class="form-note">* Pendaftaran akan disahkan oleh admin selepas pembayaran diverifikasi.</p>
+    </div>
+
+  </div><!-- /mainForm -->
+
+  <!-- SUCCESS -->
+  <div id="successScreen" class="success-screen" style="display:none;">
+    <div class="success-icon">✅</div>
+    <h2 class="success-title">Pendaftaran Berjaya!</h2>
+    <p class="success-msg">Terima kasih! Pendaftaran anda telah diterima dan sedang menunggu pengesahan admin.</p>
+    <div class="success-badge" id="successBadge"></div>
+    <p class="success-note">Simpan nombor rujukan di atas untuk semak status pendaftaran anda.</p>
+    <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
+      <a href="status.html" class="btn btn-primary">🔍 Semak Status</a>
+      <a href="index.html"  class="btn btn-outline">← Kembali ke Laman Utama</a>
+    </div>
+  </div>
+
+  <footer class="footer">AKPS BSI 2026 &nbsp;·&nbsp; Sistem Pendaftaran Sukan Bowling</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { getLaneOccupancy, submitRegistration } from "./supabase.js";
+
+  // ── Load lanes ────────────────────────────────────────────
+  async function loadLanes() {
+    const sel  = document.getElementById("laneSelect");
+    const hint = document.getElementById("laneHint");
+    try {
+      const lanes = await getLaneOccupancy();
+      const available = lanes.filter(l => !l.full);
+
+      sel.innerHTML = '<option value="">— Pilih lane anda —</option>';
+      lanes.forEach(l => {
+        const opt = document.createElement("option");
+        opt.value = l.name;
+        if (l.full) {
+          opt.textContent = `${l.name} — PENUH`;
+          opt.disabled = true;
+        } else {
+          opt.textContent = `${l.name}  (${l.taken}/4)${l.remaining === 1 ? " ⚠️ Last slot!" : ""}`;
+        }
+        sel.appendChild(opt);
+      });
+      sel.disabled = false;
+      hint.textContent = `${available.length} lane tersedia`;
+      hint.className = "lane-hint ok";
+    } catch(e) {
+      sel.innerHTML = '<option value="">— Gagal load lane —</option>';
+      hint.textContent = "Sila muat semula halaman.";
+      hint.className = "lane-hint err";
+    }
+  }
+
+  // ── Lane change hint ──────────────────────────────────────
+  document.getElementById("laneSelect").addEventListener("change", function() {
+    const hint = document.getElementById("laneHint");
+    if (this.value) {
+      hint.textContent = `✓ ${this.value} dipilih`;
+      hint.className = "lane-hint ok";
+    }
+  });
+
+  // ── File upload ───────────────────────────────────────────
+  const fileInput  = document.getElementById("receiptFile");
+  const fileZone   = document.getElementById("fileZone");
+  const fileInner  = document.getElementById("fileInner");
+  const filePreview= document.getElementById("filePreview");
+  const previewImg = document.getElementById("previewImg");
+  const fileNameEl = document.getElementById("fileName");
+
+  fileInput.addEventListener("change", function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast("Fail melebihi 5MB", "error"); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      fileNameEl.textContent = "✓ " + file.name;
+      fileInner.style.display  = "none";
+      filePreview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  fileZone.addEventListener("dragover", e => { e.preventDefault(); fileZone.classList.add("dragover"); });
+  fileZone.addEventListener("dragleave", () => fileZone.classList.remove("dragover"));
+  fileZone.addEventListener("drop", e => {
+    e.preventDefault(); fileZone.classList.remove("dragover");
+    const file = e.dataTransfer.files[0];
+    if (file) { fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event("change")); }
+  });
+
+  window.removeFile = function() {
+    fileInput.value = "";
+    fileInner.style.display   = "block";
+    filePreview.style.display = "none";
+    previewImg.src = "";
+  };
+
+  // ── Submit ────────────────────────────────────────────────
+  window.handleSubmit = async function() {
+    const fullName  = document.getElementById("fullName").value.trim();
+    const icNumber  = document.getElementById("icNumber").value.trim();
+    const phone     = document.getElementById("phone").value.trim();
+    const email     = document.getElementById("email").value.trim();
+    const teamNameEl = document.getElementById("teamName");
+    const teamName = teamNameEl ? teamNameEl.value.trim() : "";
+    const laneNumber= document.getElementById("laneSelect").value;
+    const btn       = document.getElementById("submitBtn");
+
+    // Validation
+    if (!fullName)   { showToast("Sila masukkan nama penuh", "error"); return; }
+    if (!icNumber)   { showToast("Sila masukkan no. IC", "error"); return; }
+    if (!phone)      { showToast("Sila masukkan no. telefon", "error"); return; }
+    if (!email || !email.includes("@")) { showToast("Sila masukkan emel yang sah", "error"); return; }
+    if (!laneNumber) { showToast("Sila pilih lane", "error"); return; }
+    if (!fileInput.files[0]) { showToast("Sila muat naik resit pembayaran", "error"); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>MENGHANTAR...';
+
+    try {
+      const result = await submitRegistration({
+        fullName, icNumber, phone, email, teamName, laneNumber,
+        receiptFile: fileInput.files[0]
+      });
+
+      // Show success
+      document.getElementById("mainForm").style.display = "none";
+      const s = document.getElementById("successScreen");
+      s.style.display = "block";
+      document.getElementById("successBadge").innerHTML = `
+        <strong style="font-family:var(--font-display);font-size:13px;letter-spacing:2px;color:var(--muted);display:block;margin-bottom:6px;">NOMBOR RUJUKAN</strong>
+        <span style="font-family:var(--font-display);font-size:28px;color:var(--gold);letter-spacing:3px;">${result.reference_number}</span>
+        <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted);">🎳 ${laneNumber} &nbsp;·&nbsp; ${fullName}</span>
+      `;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+    } catch(e) {
+      showToast("Ralat: " + e.message, "error");
+      btn.disabled = false;
+      btn.innerHTML = "HANTAR PENDAFTARAN";
+    }
+  };
+
+  // ── Toast ─────────────────────────────────────────────────
+  window.showToast = function(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast " + type + " show";
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove("show"), 3500);
+  };
+
+  loadLanes();
+</script>
+</body>
+</html>

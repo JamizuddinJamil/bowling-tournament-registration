@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Admin Login — Sukan Bowling AKPS BSI 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="wrap" style="display:flex;flex-direction:column;justify-content:center;min-height:100vh;padding-top:0;padding-bottom:0;">
+
+  <div class="card" style="animation: fadeUp .5s ease both;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:40px;margin-bottom:10px;">🔐</div>
+      <h1 style="font-size:28px;color:var(--white);">ADMIN <span style="color:var(--gold);">LOGIN</span></h1>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;">Sukan Bowling AKPS BSI 2026</p>
+    </div>
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="admin" autocomplete="username"/>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+
+    <div id="errorMsg" style="display:none;background:var(--red-bg);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;text-align:center;">
+      Username atau password salah.
+    </div>
+
+    <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">LOG MASUK</button>
+
+    <div style="text-align:center;margin-top:16px;">
+      <a href="index.html" style="font-size:12px;color:var(--muted);">← Kembali ke laman utama</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Redirect if already logged in
+  if (sessionStorage.getItem("adminAuth") === "true") {
+    window.location.href = "admin.html";
+  }
+
+  // Allow Enter key
+  document.getElementById("password").addEventListener("keydown", e => {
+    if (e.key === "Enter") handleLogin();
+  });
+
+  function handleLogin() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    const btn      = document.getElementById("loginBtn");
+    const errMsg   = document.getElementById("errorMsg");
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>MENGESAHKAN...';
+    errMsg.style.display = "none";
+
+    // Simulate slight delay for UX
+    setTimeout(() => {
+      if (username === CONFIG.ADMIN_USERNAME && password === CONFIG.ADMIN_PASSWORD) {
+        sessionStorage.setItem("adminAuth", "true");
+        window.location.href = "admin.html";
+      } else {
+        errMsg.style.display = "block";
+        btn.disabled = false;
+        btn.innerHTML = "LOG MASUK";
+        document.getElementById("password").value = "";
+        document.getElementById("password").focus();
+      }
+    }, 600);
+  }
+</script>
+<script src="config.js"></script>
+</body>
+</html>
