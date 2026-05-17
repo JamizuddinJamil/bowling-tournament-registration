@@ -72,18 +72,19 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Rujukan</th>
-            <th>Nama</th>
-            <th>Telefon</th>
-            <th>Lane</th>
-            <th>Status</th>
-            <th>Resit</th>
-            <th>Tarikh</th>
-            <th>Tindakan</th>
+<th>Rujukan</th>
+<th>Nama</th>
+<th>Unit</th>
+<th>Telefon</th>
+<th>Lane</th>
+<th>Status</th>
+<th>Resit</th>
+<th>Tarikh</th>
+<th>Tindakan</th>
           </tr>
         </thead>
         <tbody id="regBody">
-          <tr><td colspan="9" class="empty-state"><div class="empty-icon">⏳</div>Memuatkan...</td></tr>
+          <tr><td colspan="10" class="empty-state"><div class="empty-icon">⏳</div>Memuatkan...</td></tr>
         </tbody>
       </table>
     </div>
@@ -192,7 +193,7 @@
   function renderTable(data) {
     const tbody = document.getElementById("regBody");
     if (!data.length) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div>Tiada rekod ditemui</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📭</div>Tiada rekod ditemui</div></td></tr>`;
       return;
     }
     tbody.innerHTML = data.map((r, i) => `
@@ -200,6 +201,7 @@
         <td class="td-mono">${i + 1}</td>
         <td class="td-mono">${r.reference_number || "—"}</td>
         <td class="td-name">${r.full_name}</td>
+        <td>${r.unit || "—"}</td>
         <td>${r.phone}</td>
         <td>${r.lane_number}</td>
         <td>${statusBadge(r.status)}${r.official_registration_id ? `<br/><small style="font-size:10px;color:var(--gold);font-family:monospace;">${r.official_registration_id}</small>` : ""}</td>
@@ -272,6 +274,7 @@
     if (!reg) return;
     document.getElementById("editId").value      = id;
     document.getElementById("editName").value    = reg.full_name;
+    document.getElementById("editUnit").value    = reg.unit || "";
     document.getElementById("editPhone").value   = reg.phone;
     document.getElementById("editRemarks").value = reg.remarks || "";
 
@@ -292,6 +295,7 @@
     const id      = document.getElementById("editId").value;
     const fields  = {
       full_name: document.getElementById("editName").value.trim(),
+      unit:      document.getElementById("editUnit").value.trim(),
       phone:     document.getElementById("editPhone").value.trim(),
       lane_number: document.getElementById("editLane").value,
       remarks:   document.getElementById("editRemarks").value.trim(),
@@ -332,10 +336,10 @@
 
   // ── Export CSV ────────────────────────────────────────────
   window.exportCSV = function() {
-    const headers = ["ID","Rujukan","ID Rasmi","Nama","No IC","Telefon","Emel","Pasukan","Lane","Status","Tarikh"];
+    const headers = ["ID","Rujukan","ID Rasmi","Nama","Unit","No IC","Telefon","Emel","Pasukan","Lane","Status","Tarikh"];
     const rows = allData.map(r => [
       r.id, r.reference_number, r.official_registration_id || "",
-      r.full_name, r.ic_number, r.phone, r.email, r.team_name || "",
+      r.full_name, r.unit || "", r.ic_number, r.phone, r.email, r.team_name || "",
       r.lane_number, r.status, formatDate(r.created_at)
     ]);
     const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");

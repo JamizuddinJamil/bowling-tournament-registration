@@ -73,6 +73,11 @@
       </div> -->
 
       <div class="field">
+  <label for="unitInput">Unit *</label>
+  <input type="text" id="unitInput" placeholder="Contoh: UKP, UTM, UPTH..." required />
+</div>
+
+      <div class="field">
         <label for="laneSelect">Pilih Lane *</label>
         <div class="select-wrap">
           <select id="laneSelect" disabled>
@@ -210,20 +215,22 @@
 
   // ── Submit ────────────────────────────────────────────────
   window.handleSubmit = async function() {
-    const fullName  = document.getElementById("fullName").value.trim();
-    const icNumber  = document.getElementById("icNumber").value.trim();
-    const phone     = document.getElementById("phone").value.trim();
-    const email     = document.getElementById("email").value.trim();
+    const fullName   = document.getElementById("fullName").value.trim();
+    const icNumber   = document.getElementById("icNumber").value.trim();
+    const phone      = document.getElementById("phone").value.trim();
+    const email      = document.getElementById("email").value.trim();
     const teamNameEl = document.getElementById("teamName");
-    const teamName = teamNameEl ? teamNameEl.value.trim() : "";
-    const laneNumber= document.getElementById("laneSelect").value;
-    const btn       = document.getElementById("submitBtn");
+    const teamName   = teamNameEl ? teamNameEl.value.trim() : "";
+    const unit       = document.getElementById("unitInput").value.trim();
+    const laneNumber = document.getElementById("laneSelect").value;
+    const btn        = document.getElementById("submitBtn");
 
     // Validation
     if (!fullName)   { showToast("Sila masukkan nama penuh", "error"); return; }
     if (!icNumber)   { showToast("Sila masukkan no. IC", "error"); return; }
     if (!phone)      { showToast("Sila masukkan no. telefon", "error"); return; }
     if (!email || !email.includes("@")) { showToast("Sila masukkan emel yang sah", "error"); return; }
+    if (!unit)       { showToast("Sila masukkan unit / jabatan", "error"); return; }
     if (!laneNumber) { showToast("Sila pilih lane", "error"); return; }
     if (!fileInput.files[0]) { showToast("Sila muat naik resit pembayaran", "error"); return; }
 
@@ -232,7 +239,7 @@
 
     try {
       const result = await submitRegistration({
-        fullName, icNumber, phone, email, teamName, laneNumber,
+        fullName, icNumber, phone, email, teamName, unit, laneNumber,
         receiptFile: fileInput.files[0]
       });
 
